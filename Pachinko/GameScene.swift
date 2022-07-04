@@ -16,17 +16,32 @@ class GameScene: SKScene {
         addChild(background)
         
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
+        
+        for i in 0..<5 {
+            makeBouncer(at: CGPoint(x: 256 * i, y: 0))
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
-        let box = SKSpriteNode(color: .red, size: CGSize(width: 64, height: 64))
-        box.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 64, height: 64))
-        box.position = location
-        addChild(box)
+        
+        let ball = SKSpriteNode(imageNamed: "ballRed")
+        ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2)
+        ball.physicsBody!.restitution = 0.4
+        ball.position = location
+        addChild(ball)
     }
+    
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+    }
+    
+    func makeBouncer(at position: CGPoint) {
+        let bouncer = SKSpriteNode(imageNamed: "bouncer")
+        bouncer.position = position
+        bouncer.physicsBody = SKPhysicsBody(circleOfRadius: bouncer.size.width / 2)
+        bouncer.physicsBody!.isDynamic = false
+        addChild(bouncer)
     }
 }
