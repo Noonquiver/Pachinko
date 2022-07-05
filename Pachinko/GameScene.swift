@@ -79,7 +79,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 box.physicsBody!.isDynamic = false
                 addChild(box)
             } else if touch.location(in: view).y.isLessThanOrEqualTo(50) {
-                let ball = SKSpriteNode(imageNamed: "ballRed")
+                let ball = SKSpriteNode(imageNamed: "ballYellow")
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2)
                 ball.physicsBody!.restitution = 0.4
                 ball.physicsBody!.contactTestBitMask = ball.physicsBody!.collisionBitMask
@@ -146,6 +146,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func destroy(ball: SKNode) {
+        if let fireParticles = SKEmitterNode(fileNamed: "FireParticles") {
+            fireParticles.position = ball.position
+            addChild(fireParticles)
+        }
+        
         ball.removeFromParent()
     }
     
