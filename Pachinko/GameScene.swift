@@ -10,7 +10,13 @@ import SpriteKit
 class GameScene: SKScene, SKPhysicsContactDelegate {
     var scoreLabel: SKLabelNode!
     var editLabel: SKLabelNode!
+    var ballsLeftLabel: SKLabelNode!
     var balls = [String]()
+    var ballsLeft = 5 {
+        didSet {
+            ballsLeftLabel.text = "Balls left: \(ballsLeft)"
+        }
+    }
     
     var score = 0 {
         didSet {
@@ -52,6 +58,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         editLabel.position = CGPoint(x: 80, y: 700)
         addChild(editLabel)
         
+        ballsLeftLabel = SKLabelNode(fontNamed: "Chalkduster")
+        ballsLeftLabel.text = "Balls left: 5"
+        ballsLeftLabel.horizontalAlignmentMode = .right
+        ballsLeftLabel.position = CGPoint(x: scoreLabel.position.x, y: scoreLabel.position.y - 68)
+        addChild(ballsLeftLabel)
+        
         for i in 0..<4 {
             if i % 2 == 0 {
                 makeSlot(at: CGPoint(x: 128 + 256 * i, y: 0), isGood: true)
@@ -80,26 +92,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 box.position = location
                 box.physicsBody = SKPhysicsBody(rectangleOf: box.size)
                 box.physicsBody!.isDynamic = false
+                box.name = "Obstacle"
                 addChild(box)
-            } else if touch.location(in: view).y.isLessThanOrEqualTo(50) {
+            } else if ballsLeft > 0 {
                 let ball = SKSpriteNode(imageNamed: balls.randomElement()!)
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2)
                 ball.physicsBody!.restitution = 0.4
                 ball.physicsBody!.contactTestBitMask = ball.physicsBody!.collisionBitMask
                 ball.position = location
-                ball.name = "ball"
+                ball.position.y = 768
+                ball.name = "Ball"
                 
                 let spin = SKAction.rotate(byAngle: .pi * 7, duration: 10)
                 let spinForever = SKAction.repeatForever(spin)
                 ball.run(spinForever)
                 
+                ballsLeft -= 1
+                
                 addChild(ball)
             }
         }
-    }
-    
-    override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
     }
     
     @objc func loadBallsArray() {
@@ -129,11 +141,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if isGood {
             slotBase = SKSpriteNode(imageNamed: "slotBaseGood")
             slotGlow = SKSpriteNode(imageNamed: "slotGlowGood")
-            slotBase.name = "good"
+            slotBase.name = "Good"
         } else {
             slotBase = SKSpriteNode(imageNamed: "slotBaseBad")
             slotGlow = SKSpriteNode(imageNamed: "slotGlowBad")
-            slotBase.name = "bad"
+            slotBase.name = "Bad"
         }
         
         slotBase.position = position
@@ -151,12 +163,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func collision(between ball: SKNode, object: SKNode) {
-        if object.name == "good" {
+        if object.name == "Good" {
             destroy(ball: ball)
             score += 1
-        } else if object.name == "bad" {
+            ballsLeft += 1
+        } else if object.name == "Bad" {
             destroy(ball: ball)
             score -= 1
+        } else if object.name == "Obstacle" {
+            object.removeFromParent()
         }
     }
     
@@ -173,9 +188,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard let nodeA = contact.bodyA.node else { return }
         guard let nodeB = contact.bodyB.node else { return }
         
-        if nodeA.name == "ball" {
+        if nodeA.name == "Ball" {
             collision(between: nodeA, object: nodeB)
-        } else if nodeB.name == "ball" {
+        } else if nodeB.name == "Ball" {
             collision(between: nodeB, object: nodeA)
         }
     }
