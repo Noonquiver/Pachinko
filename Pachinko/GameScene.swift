@@ -10,6 +10,7 @@ import SpriteKit
 class GameScene: SKScene, SKPhysicsContactDelegate {
     var scoreLabel: SKLabelNode!
     var editLabel: SKLabelNode!
+    var balls = [String]()
     
     var score = 0 {
         didSet {
@@ -29,6 +30,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func didMove(to view: SKView) {
+        performSelector(inBackground: #selector(loadBallsArray), with: nil)
+        
         physicsWorld.contactDelegate = self
         physicsBody = SKPhysicsBody(edgeLoopFrom: frame)
         
@@ -66,7 +69,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard let touch = touches.first else { return }
         let location = touch.location(in: self)
         let objects = nodes(at: location)
-
+        
         if objects.contains(editLabel) {
             editingMode.toggle()
         } else {
@@ -79,7 +82,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 box.physicsBody!.isDynamic = false
                 addChild(box)
             } else if touch.location(in: view).y.isLessThanOrEqualTo(50) {
-                let ball = SKSpriteNode(imageNamed: "ballYellow")
+                let ball = SKSpriteNode(imageNamed: balls.randomElement()!)
                 ball.physicsBody = SKPhysicsBody(circleOfRadius: ball.size.width / 2)
                 ball.physicsBody!.restitution = 0.4
                 ball.physicsBody!.contactTestBitMask = ball.physicsBody!.collisionBitMask
@@ -97,6 +100,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+    }
+    
+    @objc func loadBallsArray() {
+        let fileManager = FileManager.default
+        let path = Bundle.main.resourcePath!
+        let contents = try! fileManager.contentsOfDirectory(atPath: path)
+        
+        for content in contents {
+            if content.hasPrefix("ball") {
+                balls.append(content)
+            }
+        }
     }
     
     func makeBouncer(at position: CGPoint) {
